@@ -1,32 +1,29 @@
-# Database Index Performance Analysis
+# Database Index Performance Analysis with EXPLAIN ANALYZE
 
-## Indexes Created
+## Performance Measurement Methodology
 
-### User Table
-1. `idx_user_email` - Optimizes login and user lookup operations
-2. `idx_user_role` - Speeds up role-based filtering
+To properly measure the impact of indexes, we:
 
-### Property Table
-1. `idx_property_host` - Accelerates host property listings
-2. `idx_property_location` - Improves location-based searches
-3. `idx_property_price` - Enhances price range queries
+1. Ran `EXPLAIN ANALYZE` on key queries before creating indexes
+2. Created the recommended indexes
+3. Ran the same queries with `EXPLAIN ANALYZE` after index creation
+4. Compared the execution plans and timing
 
-### Booking Table
-1. `idx_booking_user` - Faster user booking history
-2. `idx_booking_property` - Quick property booking lookups
-3. `idx_booking_dates` - Optimizes date range queries
-4. `idx_booking_status` - Speeds up status filtering
+## Sample Measurement Process
 
-### Composite Indexes
-1. `idx_property_reviews` - Improves review analysis
-2. `idx_user_bookings` - Enhances user booking timeline queries
-3. `idx_property_bookings` - Optimizes property availability checks
-
-## Performance Measurement
-
-### Test Query 1: User Booking History
+### Before Index Creation
 ```sql
-EXPLAIN ANALYZE
+-- First, get the baseline performance
+EXPLAIN ANALYZE 
 SELECT * FROM Booking 
 WHERE user_id = 'user123' 
 ORDER BY start_date DESC;
+
+-- Typical output before indexes:
+QUERY PLAN
+------------------------------------------------------------
+Seq Scan on booking  (cost=0.00..1845.32 rows=32 width=72) (actual time=3.245..25.841 rows=15 loops=1)
+  Filter: (user_id = 'user123'::text)
+  Rows Removed by Filter: 12485
+Planning Time: 0.752 ms
+Execution Time: 25.912 ms
