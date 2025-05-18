@@ -18,6 +18,11 @@ FROM
 INNER JOIN
     User AS u ON b.user_id = u.user_id; -- Join on the user_id column
 
+---- Use the correct database
+USE airbnb_db;
+
+-- ... (your other queries like INNER JOIN) ...
+
 -- 2. LEFT JOIN: Retrieve all properties and their reviews, including properties that have no reviews.
 --    A LEFT JOIN returns all rows from the left table (Property) and the matched rows from the right table (Review).
 --    If there is no match, columns from the right table will be NULL.
@@ -30,7 +35,13 @@ SELECT
 FROM
     Property AS p -- Alias Property table as 'p' (Left table)
 LEFT JOIN
-    Review AS r ON p.property_id = r.property_id; -- Join on the property_id column
+    Review AS r ON p.property_id = r.property_id -- Join on the property_id column
+ORDER BY
+    p.property_id; -- Added ORDER BY clause
+    -- You could also order by property name: ORDER BY p.name;
+    -- Or perhaps by property name and then review rating: ORDER BY p.name, r.rating DESC;
+
+-- ... (your other queries like FULL OUTER JOIN simulation) ...
 
 -- 3. FULL OUTER JOIN: Retrieve all users and all bookings, even if the user has no booking or a booking is not linked to a user.
 --    MySQL does not directly support FULL OUTER JOIN. This query simulates it using a LEFT JOIN UNIONed with a RIGHT JOIN.
