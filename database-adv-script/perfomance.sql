@@ -1,4 +1,4 @@
--- Initial unoptimized query
+-- Initial unoptimized query retrieving all bookings with related details
 EXPLAIN ANALYZE
 SELECT 
     b.booking_id,
@@ -6,8 +6,10 @@ SELECT
     u.first_name,
     u.last_name,
     u.email,
+    u.phone_number,
     p.property_id,
     p.name AS property_name,
+    p.description,
     p.location,
     p.price_per_night,
     b.start_date,
@@ -26,11 +28,14 @@ JOIN
     Property p ON b.property_id = p.property_id
 LEFT JOIN 
     Payment pay ON b.booking_id = pay.booking_id
+WHERE 
+    b.status = 'confirmed' 
+    AND b.start_date > '2023-01-01'
+    AND p.price_per_night < 500
 ORDER BY 
-    b.start_date DESC
-LIMIT 1000;
+    b.start_date DESC;
 
--- Optimized query
+-- Optimized version of the same query
 EXPLAIN ANALYZE
 SELECT 
     b.booking_id,
@@ -45,11 +50,8 @@ SELECT
     b.start_date,
     b.end_date,
     b.total_price,
-    b.status AS booking_status,
-    pay.payment_id,
     pay.amount,
-    pay.payment_date,
-    pay.payment_method
+    pay.payment_date
 FROM 
     Booking b
 INNER JOIN 
@@ -57,20 +59,21 @@ INNER JOIN
 INNER JOIN 
     Property p ON b.property_id = p.property_id
 LEFT JOIN 
-    (
-        SELECT 
-            payment_id, 
-            booking_id, 
-            amount, 
-            payment_date, 
-            payment_method
-        FROM 
-            Payment
-        WHERE 
-            payment_date > CURRENT_DATE - INTERVAL '1 year'
+    (SELECT 
+        payment_id, 
+        booking_id, 
+        amount, 
+        payment_date 
+     FROM 
+        Payment 
+     WHERE 
+        payment_date > CURRENT_DATE - INTERVAL '1 year'
     ) pay ON b.booking_id = pay.booking_id
 WHERE 
-    b.start_date > CURRENT_DATE - INTERVAL '2 years'
+    b.status = 'confirmed'
+    AND b.start_date > CURRENT_DATE - INTERVAL '1 year'
+    AND p.price_per_night BETWEEN 50 AND 300
+    AND p.location LIKE '%New York%'
 ORDER BY 
     b.start_date DESC
 LIMIT 1000;
